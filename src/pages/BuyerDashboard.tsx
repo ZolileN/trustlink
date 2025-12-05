@@ -9,6 +9,7 @@ import { generateVerificationUrl, generateWhatsAppShareUrl } from '../lib/utils'
 
 export function BuyerDashboard() {
   const [buyerPhone, setBuyerPhone] = useState('');
+  const [buyerEmail, setBuyerEmail] = useState('');  // Add this line here
   const [sellerPhone, setSellerPhone] = useState('');
   const [verificationType, setVerificationType] = useState<VerificationType>('property');
   const [loading, setLoading] = useState(false);
@@ -27,14 +28,15 @@ export function BuyerDashboard() {
 
     const { session, error: apiError } = await createVerificationSession(
       buyerPhone,
+      buyerEmail,
       sellerPhone,
       verificationType
     );
 
     setLoading(false);
 
-    if (apiError) {
-      setError(apiError);
+    if (apiError || !session) {
+      setError(apiError || 'Failed to create verification session');
       return;
     }
 
@@ -103,6 +105,7 @@ This will only take 45 seconds and helps protect both of us from scams.`;
                 onClick={() => {
                   setVerificationUrl('');
                   setBuyerPhone('');
+                  setBuyerEmail('');  // Add this line
                   setSellerPhone('');
                 }}
               >
@@ -144,6 +147,15 @@ This will only take 45 seconds and helps protect both of us from scams.`;
               helperText="Your contact number for updates"
             />
 
+            <Input
+  label="Your Email"
+  type="email"
+              placeholder="your.email@example.com"
+              value={buyerEmail}
+              onChange={(e) => setBuyerEmail(e.target.value)}
+              helperText="Your email for verification updates"
+              required
+            />
             <Input
               label="Seller's Phone Number"
               type="tel"

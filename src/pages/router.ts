@@ -26,3 +26,4 @@ export function getRouteName(): 'home' | 'verify' | 'results' {
 
   return 'home';
 }
+
