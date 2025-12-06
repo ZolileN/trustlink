@@ -194,63 +194,79 @@ export async function sendVerificationResults(
   result: VerificationResult
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    // Get the session to access buyer's phone number
-    const { session, error: sessionError } = await getSessionBySessionId(sessionId);
+    // Get the session to access buyer's phone and email
+    const { data: session, error: sessionError } = await supabase
+      .from('verification_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .single();
+
     if (sessionError || !session) {
-      return { success: false, error: sessionError || 'Session not found' };
+      return { success: false, error: 'Session not found' };
     }
 
     // Create a results link
     const resultsLink = `${window.location.origin}/results/${session.session_token}`;
     
-    // Format the message based on verification results
-    let message = `🔒 TrustLink Verification Results\n\n`;
-    message += `✅ Verification completed by seller\n\n`;
+    // Format the message for email
+    let emailContent = `
+      <h2>TrustLink Verification Results</h2>
+      <p>Hello,</p>
+      <p>Your verification results are ready. Here's a summary:</p>
+      <ul>
+    `;
     
     if (result.id_verification_status === 'verified') {
-      message += `🆔 ID Verification: Verified\n`;
-      message += `   • Name Match: ${result.name_match ? '✅' : '❌'}\n\n`;
+      emailContent += `<li>✅ ID Verification: ${result.name_match ? 'Verified' : 'Verification Failed'}</li>`;
     }
     
     if (result.property_verification_status === 'verified') {
-      message += `🏠 Property Verification: ${result.property_match ? '✅ Verified' : '❌ Not Verified'}\n\n`;
+      emailContent += `<li>🏠 Property Verification: ${result.property_match ? 'Verified' : 'Verification Failed'}</li>`;
     }
     
     if (result.vehicle_verification_status === 'verified') {
-      message += `🚗 Vehicle Verification: ${result.vehicle_match ? '✅ Verified' : '❌ Not Verified'}\n\n`;
+      emailContent += `<li>🚗 Vehicle Verification: ${result.vehicle_match ? 'Verified' : 'Verification Failed'}</li>`;
     }
     
-    message += `View full results: ${resultsLink}`;
+    emailContent += `
+      </ul>
+      <p>View full results: <a href="${resultsLink}">${resultsLink}</a></p>
+      <p>Best regards,<br/>The TrustLink Team</p>
+    `;
 
-    // In a real app, you would integrate with an SMS service here
-    // For example, using Twilio, AWS SNS, or another SMS provider
-    console.log('Sending verification results to:', session.buyer_phone);
-    console.log('Message:', message);
+    // Send email to buyer
+    if (session.buyer_email) {
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-email', {
+          body: {
+            to: session.buyer_email,
+            subject: 'Your TrustLink Verification Results',
+            html: emailContent,
+          },
+        });
+
+        if (emailError) {
+          console.error('Error sending email:', emailError);
+          // Fallback to SMS if email fails
+          const smsMessage = `TrustLink: Your verification results are ready. View at: ${resultsLink}`;
+          await sendSMS(session.buyer_phone, smsMessage);
+        }
+      } catch (emailError) {
+        console.error('Error in email sending:', emailError);
+        // Fallback to SMS if email sending fails
+        const smsMessage = `TrustLink: Your verification results are ready. View at: ${resultsLink}`;
+        await sendSMS(session.buyer_phone, smsMessage);
+      }
+    } else {
+      // If no email, send SMS
+      const smsMessage = `TrustLink: Your verification results are ready. View at: ${resultsLink}`;
+      await sendSMS(session.buyer_phone, smsMessage);
+    }
 
     return { success: true, error: null };
   } catch (error) {
     console.error('Error sending verification results:', error);
     return { success: false, error: 'Failed to send verification results' };
-  }
-}
-
-// Add this helper function to get session by ID
-async function getSessionBySessionId(sessionId: string) {
-  try {
-    const { data, error } = await supabase
-      .from('verification_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .maybeSingle();
-
-    if (error) {
-      return { session: null, error: error.message };
-    }
-
-    return { session: data as VerificationSession | null, error: null };
-  } catch (error) {  // Changed from err to error
-    console.error('Error fetching session by ID:', error);
-    return { session: null, error: 'Failed to fetch session' };
   }
 }
 

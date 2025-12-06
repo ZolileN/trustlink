@@ -17,6 +17,7 @@ export interface VerificationSession {
   id: string;
   session_token: string;
   buyer_phone: string;
+  buyer_email: string;  // Make sure this is here
   seller_phone: string;
   verification_type: VerificationType;
   status: SessionStatus;
