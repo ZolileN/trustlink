@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from './router';
 import { Shield, RefreshCw, Share2 } from 'lucide-react';
 import { Card, CardHeader } from '../components/Card';
@@ -6,7 +6,7 @@ import { Button } from '../components/Button';
 import { VerificationBadge } from '../components/VerificationBadge';
 import { getSessionByToken, getVerificationResult } from '../lib/api';
 import { VerificationSession, VerificationResult } from '../lib/supabase';
-import { formatDateTime } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 
 export function VerificationResults() {
   const { token } = useParams();
@@ -14,43 +14,63 @@ export function VerificationResults() {
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isBuyer, setIsBuyer] = useState(false);
 
-  useEffect(() => {
-    loadResults();
-  }, [token]);
+  const getCurrentUserPhone = useCallback(async (): Promise<string | null> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.phone || null;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
+  }, []);
 
-  const loadResults = async () => {
+  const loadResults = useCallback(async () => {
     if (!token) {
       setError('Invalid verification link');
       setLoading(false);
       return;
     }
 
-    const { session: fetchedSession, error: sessionError } = await getSessionByToken(token);
+    try {
+      const currentUserPhone = await getCurrentUserPhone();
+      const { session: fetchedSession, error: sessionError } = await getSessionByToken(token);
 
-    if (sessionError || !fetchedSession) {
-      setError('Could not load verification session');
-      setLoading(false);
-      return;
-    }
-
-    setSession(fetchedSession);
-
-    if (fetchedSession.status === 'completed') {
-      const { result: fetchedResult, error: resultError } = await getVerificationResult(fetchedSession.id);
-
-      if (resultError) {
-        setError('Could not load verification results');
-      } else {
-        setResult(fetchedResult);
+      if (sessionError || !fetchedSession) {
+        setError('Could not load verification session');
+        setLoading(false);
+        return;
       }
-    }
 
-    setLoading(false);
-  };
+      // Check if current user is the buyer
+      setIsBuyer(currentUserPhone === fetchedSession.buyer_phone);
+      setSession(fetchedSession);
+
+      if (fetchedSession.status === 'completed') {
+        const { result: fetchedResult, error: resultError } = await getVerificationResult(fetchedSession.id);
+
+        if (resultError) {
+          setError('Could not load verification results');
+        } else {
+          setResult(fetchedResult);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading results:', error);
+      setError('An error occurred while loading the verification results');
+    } finally {
+      setLoading(false);
+    }
+  }, [token, getCurrentUserPhone]);
+
+  useEffect(() => {
+    loadResults();
+  }, [loadResults]);
 
   const handleRefresh = () => {
     setLoading(true);
+    setError('');
     loadResults();
   };
 
@@ -58,8 +78,12 @@ export function VerificationResults() {
     const url = window.location.href;
     if (navigator.share) {
       navigator.share({
-        title: 'TrustLink Verification Results',
-        text: 'View my verified TrustLink results',
+        title: isBuyer 
+          ? 'My TrustLink Verification Results' 
+          : 'TrustLink Verification Results',
+        text: isBuyer
+          ? 'Here are my verification results from TrustLink'
+          : 'Here are the verification results from TrustLink',
         url
       });
     } else {
@@ -68,12 +92,31 @@ export function VerificationResults() {
     }
   };
 
+  const getVerificationTypeLabel = () => {
+    if (!session) return '';
+    
+    switch (session.verification_type) {
+      case 'property':
+        return 'Property Verification';
+      case 'vehicle':
+        return 'Vehicle Verification';
+      case 'both':
+        return 'Property & Vehicle Verification';
+      default:
+        return 'Verification';
+    }
+  };
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
         <div className="text-center">
-          <Shield className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">Loading results...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading verification results...</p>
         </div>
       </div>
     );
@@ -81,12 +124,19 @@ export function VerificationResults() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center p-4">
-        <Card className="max-w-md">
-          <div className="text-center">
-            <p className="text-red-600">{error}</p>
-          </div>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
+        <div className="max-w-md mx-auto">
+          <Card className="text-center">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+              <p className="text-gray-700 mb-6">{error}</p>
+              <Button onClick={handleRefresh}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -115,14 +165,12 @@ export function VerificationResults() {
                 </p>
               </div>
 
-              <Button
-                variant="outline"
-                className="w-full flex items-center justify-center gap-2"
-                onClick={handleRefresh}
-              >
-                <RefreshCw className="w-5 h-5" />
-                Refresh Status
-              </Button>
+              <div className="flex justify-end">
+                <Button onClick={handleRefresh}>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh Status
+                </Button>
+              </div>
             </div>
           </Card>
         </div>
@@ -130,30 +178,19 @@ export function VerificationResults() {
     );
   }
 
-  const getVerificationTypeLabel = () => {
-    switch (session.verification_type) {
-      case 'property':
-        return 'Property Ownership';
-      case 'vehicle':
-        return 'Vehicle Ownership';
-      case 'both':
-        return 'Property & Vehicle Ownership';
-    }
-  };
-
   const allVerified = result?.id_verification_status === 'verified' &&
     result?.name_match === true &&
     (session.verification_type === 'vehicle' ||
-      (result?.property_verification_status === 'verified' && result?.property_match === true)) &&
-    (session.verification_type === 'property' ||
-      (result?.vehicle_verification_status === 'verified' && result?.vehicle_match === true));
+      (result?.property_verification_status === 'verified' && result?.property_match === true));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
           <Shield className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Verification Results</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            {isBuyer ? 'Your Verification Results' : 'Verification Results'}
+          </h1>
           <p className="text-xl text-gray-600">{getVerificationTypeLabel()}</p>
         </div>
 
@@ -164,10 +201,26 @@ export function VerificationResults() {
             </h3>
             <p className={`${allVerified ? 'text-green-800' : 'text-yellow-800'}`}>
               {allVerified
-                ? 'All verification checks passed successfully'
-                : 'Some verification checks did not pass. Review details below.'}
+                ? isBuyer 
+                  ? 'All verification checks passed successfully. You can proceed with confidence.'
+                  : 'All verification checks passed successfully'
+                : isBuyer
+                  ? 'Some verification checks did not pass. Please review the details carefully before proceeding.'
+                  : 'Some verification checks did not pass. Review details below.'}
             </p>
           </div>
+
+          {/* Next Steps for Buyer */}
+          {isBuyer && (
+            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-900 mb-2">Next Steps</h4>
+              <ul className="list-disc pl-5 space-y-1 text-blue-800 text-sm">
+                <li>Share these results with the seller if needed</li>
+                <li>Keep this link for your records</li>
+                <li>Contact support if you have any questions</li>
+              </ul>
+            </div>
+          )}
 
           <div className="space-y-4">
             <div>
@@ -223,41 +276,36 @@ export function VerificationResults() {
             )}
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="text-sm text-gray-600 space-y-1">
-              <p><strong>Completed:</strong> {result?.completed_at ? formatDateTime(result.completed_at) : 'N/A'}</p>
-              <p><strong>Verification ID:</strong> {session.id.substring(0, 8).toUpperCase()}</p>
+          {!allVerified && (
+            <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <h4 className="font-semibold text-red-900 mb-2">⚠ Warning</h4>
+              <p className="text-red-800 text-sm">
+                {isBuyer
+                  ? 'Please verify all details with the seller before proceeding with the transaction.'
+                  : 'Please ensure all details are correct before sharing these results with the buyer.'}
+              </p>
             </div>
-          </div>
+          )}
         </Card>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <Button
             variant="outline"
-            className="flex-1 flex items-center justify-center gap-2"
-            onClick={handleShare}
+            onClick={handleRefresh}
+            className="flex-1"
+            disabled={loading}
           >
-            <Share2 className="w-5 h-5" />
-            Share Results
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
           <Button
-            variant="primary"
-            className="flex-1"
-            onClick={() => window.location.href = '/'}
+            onClick={handleShare}
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
           >
-            Create New Verification
+            <Share2 className="w-4 h-4 mr-2" />
+            Share Results
           </Button>
         </div>
-
-        {!allVerified && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <h4 className="font-semibold text-red-900 mb-2">⚠ Warning</h4>
-            <p className="text-red-800 text-sm">
-              This seller has not passed all verification checks. Please exercise caution before proceeding with any transactions.
-              Do not send deposits or payments until you are confident in the seller's identity and ownership claims.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
