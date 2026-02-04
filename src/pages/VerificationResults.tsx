@@ -85,8 +85,14 @@ export function VerificationResults() {
           ? 'Here are my verification results from TrustLink'
           : 'Here are the verification results from TrustLink',
         url
+      }).catch(err => {
+        console.error('Error sharing:', err);
+        // Fallback to clipboard if sharing fails
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
       });
     } else {
+      // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(url);
       alert('Link copied to clipboard!');
     }
@@ -288,24 +294,24 @@ export function VerificationResults() {
           )}
         </Card>
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            className="flex-1"
-            disabled={loading}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button
-            onClick={handleShare}
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Share Results
-          </Button>
-        </div>
+          <div className="flex flex-col sm:flex-row gap-3 mt-6" style={{ visibility: 'visible', display: 'flex' }}>                                         
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                className="flex-1"
+                disabled={loading}
+                >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+                </Button>
+                <Button
+                onClick={handleShare}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Results
+                </Button>
+          </div>
       </div>
     </div>
   );
