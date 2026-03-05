@@ -38,7 +38,7 @@ const howItWorksSteps = [
   {
     title: 'View Verified Results Instantly',
     description:
-      'Open the same link to see real-time verification results. Green means ownership and identity match; red indicates a mismatch. Share proof with confidence before making any payment.'
+      'Green means ownership and identity match; red indicates a mismatch.'
   }
 ];
 
@@ -150,7 +150,7 @@ This takes under 45 seconds and protects both of us from scams.`;
 
   return (
     <div className="app-bg min-h-screen">
-      <div className="page-shell max-w-3xl">
+      <div className="page-shell max-w-6xl">
         <section className="logo-hero mb-7 rounded-3xl border border-blue-100 bg-white/70 p-6 text-center shadow-sm backdrop-blur-sm sm:p-8">
           <div className="mb-3 flex flex-col items-center gap-3">
             <div className="logo-frame">
@@ -164,108 +164,110 @@ This takes under 45 seconds and protects both of us from scams.`;
           </div>
         </section>
 
-        <Card>
-          <CardHeader
-            title="Create Verification Link"
-            subtitle="Add details, choose checks, and send instantly to your seller."
-          />
-
-          <div className="space-y-4">
-            <Input
-              label="Your Phone Number"
-              type="tel"
-              placeholder="0821234567"
-              value={buyerPhone}
-              onChange={(e) => setBuyerPhone(e.target.value)}
-              helperText="Used for result updates"
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+          <Card>
+            <CardHeader
+              title="Create Verification Link"
+              subtitle="Add details, choose checks, and send instantly to your seller."
             />
 
-            <Input
-              label="Your Email"
-              type="email"
-              placeholder="your.email@example.com"
-              value={buyerEmail}
-              onChange={(e) => setBuyerEmail(e.target.value)}
-              helperText="Optional, for additional notifications"
-            />
+            <div className="space-y-4">
+              <Input
+                label="Your Phone Number"
+                type="tel"
+                placeholder="0821234567"
+                value={buyerPhone}
+                onChange={(e) => setBuyerPhone(e.target.value)}
+                helperText="Used for result updates"
+              />
 
-            <Input
-              label="Seller's Phone Number"
-              type="tel"
-              placeholder="0827654321"
-              value={sellerPhone}
-              onChange={(e) => setSellerPhone(e.target.value)}
-              helperText="The verification link is sent to this number"
-            />
+              <Input
+                label="Your Email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={buyerEmail}
+                onChange={(e) => setBuyerEmail(e.target.value)}
+                helperText="Optional, for additional notifications"
+              />
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">What to Verify</label>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                {verificationOptions.map((option) => {
-                  const isSelected = verificationType === option.value;
-                  return (
-                    <label
-                      key={option.value}
-                      className={`cursor-pointer rounded-2xl border p-4 transition-all ${
-                        isSelected
-                          ? 'border-blue-300 bg-blue-50 shadow-sm'
-                          : 'border-slate-200 bg-white/80 hover:border-blue-200 hover:bg-blue-50/40'
-                      }`}
-                    >
-                      <div className="mb-2 flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="verificationType"
-                          value={option.value}
-                          checked={isSelected}
-                          onChange={(e) => setVerificationType(e.target.value as VerificationType)}
-                          className="h-4 w-4 border-slate-300 text-blue-600"
-                        />
-                        <span className="font-semibold text-slate-900">{option.title}</span>
-                      </div>
-                      <p className="pl-6 text-sm text-slate-500">{option.description}</p>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
+              <Input
+                label="Seller's Phone Number"
+                type="tel"
+                placeholder="0827654321"
+                value={sellerPhone}
+                onChange={(e) => setSellerPhone(e.target.value)}
+                helperText="The verification link is sent to this number"
+              />
 
-            {error && (
-              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-                {error}
-              </div>
-            )}
-
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full gap-2"
-              onClick={handleCreateLink}
-              disabled={loading}
-            >
-              {loading ? 'Creating Link...' : 'Create Verification Link'}
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </div>
-        </Card>
-
-        <section className="mt-7 rounded-3xl border border-blue-100 bg-white/85 p-6 shadow-sm backdrop-blur-sm sm:p-7">
-          <h3 className="hero-title text-2xl font-bold text-slate-900">How Identity Banc Works</h3>
-          <div className="mt-4 grid gap-3">
-            {howItWorksSteps.map((step, index) => (
-              <article
-                key={step.title}
-                className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/60 p-4"
-              >
-                <div className="mb-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">
-                  Step {index + 1}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">What to Verify</label>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {verificationOptions.map((option) => {
+                    const isSelected = verificationType === option.value;
+                    return (
+                      <label
+                        key={option.value}
+                        className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+                          isSelected
+                            ? 'border-blue-300 bg-blue-50 shadow-sm'
+                            : 'border-slate-200 bg-white/80 hover:border-blue-200 hover:bg-blue-50/40'
+                        }`}
+                      >
+                        <div className="mb-2 flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="verificationType"
+                            value={option.value}
+                            checked={isSelected}
+                            onChange={(e) => setVerificationType(e.target.value as VerificationType)}
+                            className="h-4 w-4 border-slate-300 text-blue-600"
+                          />
+                          <span className="font-semibold text-slate-900">{option.title}</span>
+                        </div>
+                        <p className="pl-6 text-sm text-slate-500">{option.description}</p>
+                      </label>
+                    );
+                  })}
                 </div>
-                <h4 className="text-base font-semibold text-slate-900 sm:text-lg">{step.title}</h4>
-                <p className="mt-1 text-sm text-slate-600 sm:text-base">{step.description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+              </div>
+
+              {error && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full gap-2"
+                onClick={handleCreateLink}
+                disabled={loading}
+              >
+                {loading ? 'Creating Link...' : 'Create Verification Link'}
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </div>
+          </Card>
+
+          <section className="rounded-3xl border border-blue-100 bg-white/85 p-6 shadow-sm backdrop-blur-sm sm:p-7">
+            <h3 className="hero-title text-2xl font-bold text-slate-900">How Identity Banc Works</h3>
+            <div className="mt-4 grid gap-3">
+              {howItWorksSteps.map((step, index) => (
+                <article
+                  key={step.title}
+                  className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/60 p-4"
+                >
+                  <div className="mb-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">
+                    Step {index + 1}
+                  </div>
+                  <h4 className="text-base font-semibold text-slate-900 sm:text-lg">{step.title}</h4>
+                  <p className="mt-1 text-sm text-slate-600 sm:text-base">{step.description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );
