@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock3 } from 'lucide-react';
 
 interface VerificationBadgeProps {
   status: 'verified' | 'failed' | 'pending' | 'skipped';
@@ -8,32 +8,24 @@ interface VerificationBadgeProps {
 export function VerificationBadge({ status, label }: VerificationBadgeProps) {
   const configs = {
     verified: {
-      icon: CheckCircle,
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-700',
-      iconColor: 'text-green-600',
-      borderColor: 'border-green-200'
+      icon: CheckCircle2,
+      className: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+      iconClass: 'text-emerald-600'
     },
     failed: {
       icon: XCircle,
-      bgColor: 'bg-red-50',
-      textColor: 'text-red-700',
-      iconColor: 'text-red-600',
-      borderColor: 'border-red-200'
+      className: 'border-rose-200 bg-rose-50 text-rose-800',
+      iconClass: 'text-rose-600'
     },
     pending: {
-      icon: Clock,
-      bgColor: 'bg-yellow-50',
-      textColor: 'text-yellow-700',
-      iconColor: 'text-yellow-600',
-      borderColor: 'border-yellow-200'
+      icon: Clock3,
+      className: 'border-amber-200 bg-amber-50 text-amber-800',
+      iconClass: 'text-amber-600'
     },
     skipped: {
-      icon: Clock,
-      bgColor: 'bg-gray-50',
-      textColor: 'text-gray-700',
-      iconColor: 'text-gray-600',
-      borderColor: 'border-gray-200'
+      icon: Clock3,
+      className: 'border-slate-200 bg-slate-50 text-slate-700',
+      iconClass: 'text-slate-500'
     }
   };
 
@@ -41,9 +33,9 @@ export function VerificationBadge({ status, label }: VerificationBadgeProps) {
   const Icon = config.icon;
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${config.bgColor} ${config.borderColor}`}>
-      <Icon className={`w-5 h-5 ${config.iconColor}`} />
-      <span className={`font-medium ${config.textColor}`}>{label}</span>
+    <div className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 ${config.className}`}>
+      <Icon className={`h-5 w-5 ${config.iconClass}`} />
+      <span className="text-sm font-semibold sm:text-base">{label}</span>
     </div>
   );
 }

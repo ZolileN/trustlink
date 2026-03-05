@@ -1,15 +1,27 @@
 import { useState } from 'react';
-import { Shield, ArrowRight, Share2 } from 'lucide-react';
+import { ArrowRight, Copy, Link2, Share2 } from 'lucide-react';
 import { Card, CardHeader } from '../components/Card';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { createVerificationSession } from '../lib/api';
 import { VerificationType } from '../lib/supabase';
 import { generateVerificationUrl, generateWhatsAppShareUrl } from '../lib/utils';
+import brandLogo from '../../Logo.png';
+
+const verificationOptions: Array<{
+  value: VerificationType;
+  title: string;
+  description: string;
+}> = [
+  { value: 'property', title: 'Property Ownership', description: 'Validate title ownership details' },
+  { value: 'vehicle', title: 'Vehicle Ownership', description: 'Validate NaTIS ownership records' },
+  { value: 'idNumber', title: 'ID Verification', description: 'Validate identity against ID details' },
+  { value: 'both', title: 'Property and Vehicle', description: 'Run both ownership checks' }
+];
 
 export function BuyerDashboard() {
   const [buyerPhone, setBuyerPhone] = useState('');
-  const [buyerEmail, setBuyerEmail] = useState('');  // Add this line here
+  const [buyerEmail, setBuyerEmail] = useState('');
   const [sellerPhone, setSellerPhone] = useState('');
   const [verificationType, setVerificationType] = useState<VerificationType>('property');
   const [loading, setLoading] = useState(false);
@@ -17,9 +29,8 @@ export function BuyerDashboard() {
   const [error, setError] = useState('');
 
   const handleCreateLink = async () => {
-    // Check required fields
     if (!buyerPhone || !sellerPhone) {
-      setError('Please fill in all required fields');
+      setError('Please fill in your phone number and the seller phone number.');
       return;
     }
 
@@ -40,63 +51,59 @@ export function BuyerDashboard() {
       return;
     }
 
-    const url = generateVerificationUrl(session.session_token);
-    setVerificationUrl(url);
+    setVerificationUrl(generateVerificationUrl(session.session_token));
   };
 
   const handleShareWhatsApp = () => {
     const message = `Hi! Please verify your identity and ownership using this secure TrustLink: ${verificationUrl}
 
-This will only take 45 seconds and helps protect both of us from scams.`;
+This takes under 45 seconds and protects both of us from scams.`;
 
     const whatsappUrl = generateWhatsAppShareUrl(sellerPhone, message);
     window.open(whatsappUrl, '_blank');
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(verificationUrl);
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(verificationUrl);
     alert('Link copied to clipboard!');
   };
 
   if (verificationUrl) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="app-bg min-h-screen">
+        <div className="page-shell max-w-2xl">
           <Card>
             <CardHeader
-              title="Verification Link Created!"
-              subtitle="Share this link with the seller to start the verification process"
+              title="Verification Link Ready"
+              subtitle="Share this secure link with your seller to begin verification."
             />
 
-            <div className="space-y-4">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-sm text-gray-600 mb-2">Verification Link:</p>
-                <p className="font-mono text-sm break-all text-gray-900">{verificationUrl}</p>
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-blue-100 bg-white/95 p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-blue-700">
+                  <Link2 className="h-4 w-4" />
+                  Verification URL
+                </div>
+                <p className="break-all font-mono text-xs text-slate-700 sm:text-sm">{verificationUrl}</p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Button
                   variant="primary"
-                  className="flex-1 flex items-center justify-center gap-2"
+                  className="gap-2"
                   onClick={handleShareWhatsApp}
                 >
-                  <Share2 className="w-5 h-5" />
-                  Share via WhatsApp
+                  <Share2 className="h-4 w-4" />
+                  Share on WhatsApp
                 </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={copyToClipboard}
-                >
+                <Button variant="outline" className="gap-2" onClick={copyToClipboard}>
+                  <Copy className="h-4 w-4" />
                   Copy Link
                 </Button>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900">
-                  <strong>Next steps:</strong> The seller will complete identity and ownership verification.
-                  You'll be able to view the results using this same link.
-                </p>
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-sm text-blue-900">
+                <strong>Next step:</strong> once the seller completes verification, this same link opens the results summary.
               </div>
 
               <Button
@@ -105,7 +112,7 @@ This will only take 45 seconds and helps protect both of us from scams.`;
                 onClick={() => {
                   setVerificationUrl('');
                   setBuyerPhone('');
-                  setBuyerEmail('');  // Add this line
+                  setBuyerEmail('');
                   setSellerPhone('');
                 }}
               >
@@ -119,22 +126,25 @@ This will only take 45 seconds and helps protect both of us from scams.`;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Shield className="w-16 h-16 text-blue-600" />
+    <div className="app-bg min-h-screen">
+      <div className="page-shell max-w-3xl">
+        <section className="logo-hero mb-7 rounded-3xl border border-blue-100 bg-white/70 p-6 text-center shadow-sm backdrop-blur-sm sm:p-8">
+          <div className="mb-3 flex flex-col items-center gap-3">
+            <div className="logo-frame">
+              <img
+                src={brandLogo}
+                alt="Identity Banc logo"
+                className="logo-image"
+              />
+            </div>
+            <p className="feature-chip">A digital ownership verification layer for safer peer-to-peer transactions.</p>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">TrustLink</h1>
-          <p className="text-xl text-gray-600">
-            Verify seller identity and ownership in 45 seconds
-          </p>
-        </div>
+        </section>
 
         <Card>
           <CardHeader
             title="Create Verification Link"
-            subtitle="Send a secure verification request to any seller"
+            subtitle="Add details, choose checks, and send instantly to your seller."
           />
 
           <div className="space-y-4">
@@ -144,118 +154,87 @@ This will only take 45 seconds and helps protect both of us from scams.`;
               placeholder="0821234567"
               value={buyerPhone}
               onChange={(e) => setBuyerPhone(e.target.value)}
-              helperText="Your contact number for updates"
+              helperText="Used for result updates"
             />
 
             <Input
-  label="Your Email"
-  type="email"
+              label="Your Email"
+              type="email"
               placeholder="your.email@example.com"
               value={buyerEmail}
               onChange={(e) => setBuyerEmail(e.target.value)}
-              helperText="Your email for verification updates"
-              required
+              helperText="Optional, for additional notifications"
             />
+
             <Input
               label="Seller's Phone Number"
               type="tel"
               placeholder="0827654321"
               value={sellerPhone}
               onChange={(e) => setSellerPhone(e.target.value)}
-              helperText="The seller will receive the verification link"
+              helperText="The verification link is sent to this number"
             />
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                What to Verify
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input
-                    type="radio"
-                    name="verificationType"
-                    value="property"
-                    checked={verificationType === 'property'}
-                    onChange={(e) => setVerificationType(e.target.value as VerificationType)}
-                    className="mr-3"
-                  />
-                  <div>
-                    <span className="font-medium block">Property Ownership</span>
-                    <span className="text-sm text-gray-500">Verify property ownership</span>
-                  </div>
-                </label>
-                <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input
-                    type="radio"
-                    name="verificationType"
-                    value="vehicle"
-                    checked={verificationType === 'vehicle'}
-                    onChange={(e) => setVerificationType(e.target.value as VerificationType)}
-                    className="mr-3"
-                  />
-                  <div>
-                    <span className="font-medium block">Vehicle Ownership</span>
-                    <span className="text-sm text-gray-500">Verify vehicle ownership</span>
-                  </div>
-                </label>
-                <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input
-                    type="radio"
-                    name="verificationType"
-                    value="idNumber"
-                    checked={verificationType === 'idNumber'}
-                    onChange={(e) => setVerificationType(e.target.value as VerificationType)}
-                    className="mr-3"
-                  />
-                  <div>
-                    <span className="font-medium block">ID Verification</span>
-                    <span className="text-sm text-gray-500">Verify identity document</span>
-                  </div>
-                </label>
-                <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input
-                    type="radio"
-                    name="verificationType"
-                    value="both"
-                    checked={verificationType === 'both'}
-                    onChange={(e) => setVerificationType(e.target.value as VerificationType)}
-                    className="mr-3"
-                  />
-                  <div>
-                    <span className="font-medium block">Property & Vehicle</span>
-                    <span className="text-sm text-gray-500">Verify both ownerships</span>
-                  </div>
-                </label>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">What to Verify</label>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {verificationOptions.map((option) => {
+                  const isSelected = verificationType === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+                        isSelected
+                          ? 'border-blue-300 bg-blue-50 shadow-sm'
+                          : 'border-slate-200 bg-white/80 hover:border-blue-200 hover:bg-blue-50/40'
+                      }`}
+                    >
+                      <div className="mb-2 flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="verificationType"
+                          value={option.value}
+                          checked={isSelected}
+                          onChange={(e) => setVerificationType(e.target.value as VerificationType)}
+                          className="h-4 w-4 border-slate-300 text-blue-600"
+                        />
+                        <span className="font-semibold text-slate-900">{option.title}</span>
+                      </div>
+                      <p className="pl-6 text-sm text-slate-500">{option.description}</p>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-800 text-sm">{error}</p>
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+                {error}
               </div>
             )}
 
             <Button
               variant="primary"
               size="lg"
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full gap-2"
               onClick={handleCreateLink}
               disabled={loading}
             >
               {loading ? 'Creating Link...' : 'Create Verification Link'}
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="h-5 w-5" />
             </Button>
           </div>
         </Card>
 
-        <div className="mt-8 bg-white rounded-lg shadow p-6">
-          <h3 className="font-bold text-gray-900 mb-3">How it works</h3>
-          <ol className="space-y-2 text-gray-600">
-            <li>1. Enter your details and select what to verify</li>
-            <li>2. Share the secure link with the seller via WhatsApp</li>
-            <li>3. Seller completes verification in under 45 seconds</li>
-            <li>4. You receive instant verification results</li>
+        <section className="mt-7 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+          <h3 className="hero-title text-xl font-bold text-slate-900">How it works</h3>
+          <ol className="mt-3 space-y-2 text-sm text-slate-600 sm:text-base">
+            <li>1. Enter contact details and choose the checks you need.</li>
+            <li>2. Share the generated secure link with the seller.</li>
+            <li>3. Seller completes verification in around 45 seconds.</li>
+            <li>4. Open the same link to view results instantly.</li>
           </ol>
-        </div>
+        </section>
       </div>
     </div>
   );
