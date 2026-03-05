@@ -15,6 +15,7 @@ import {
 } from '../lib/api';
 import { VerificationSession } from '../lib/supabase';
 import { isSessionExpired, hashValue } from '../lib/utils';
+import brandLogo from '../../Logo.png';
 
 type VerificationStep = 'loading' | 'expired' | 'invalid' | 'intro' | 'id' | 'property' | 'vehicle' | 'complete';
 
@@ -200,8 +201,9 @@ export function SellerVerification() {
       <div className="app-bg min-h-screen py-12 px-4">
         <div className="page-shell max-w-2xl">
           <div className="mb-8 text-center">
-            <Shield className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-            <h1 className="hero-title mb-2 text-4xl font-bold text-gray-900">TrustLink Verification</h1>
+            <div className="logo-frame mb-2">
+              <img src={brandLogo} alt="Identity Banc logo" className="logo-image" />
+            </div>
             <p className="text-xl text-gray-600">Quick and secure identity checks</p>
           </div>
 

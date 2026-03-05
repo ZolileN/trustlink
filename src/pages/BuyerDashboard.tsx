@@ -19,6 +19,29 @@ const verificationOptions: Array<{
   { value: 'both', title: 'Property and Vehicle', description: 'Run both ownership checks' }
 ];
 
+const howItWorksSteps = [
+  {
+    title: 'Enter Buyer Details & Choose Verification',
+    description:
+      'Fill in your contact info and select the verification type(s) you need - ID, property ownership, or vehicle registration.'
+  },
+  {
+    title: 'Generate & Share Secure Link',
+    description:
+      'Instantly create a unique, encrypted verification link and send it to the seller via WhatsApp, email, or any messaging platform.'
+  },
+  {
+    title: 'Seller Verifies in Under a Minute',
+    description:
+      'The seller clicks the link and completes the verification process - typically 45 seconds or less - using official government records.'
+  },
+  {
+    title: 'View Verified Results Instantly',
+    description:
+      'Open the same link to see real-time verification results. Green means ownership and identity match; red indicates a mismatch. Share proof with confidence before making any payment.'
+  }
+];
+
 export function BuyerDashboard() {
   const [buyerPhone, setBuyerPhone] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
@@ -226,14 +249,22 @@ This takes under 45 seconds and protects both of us from scams.`;
           </div>
         </Card>
 
-        <section className="mt-7 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
-          <h3 className="hero-title text-xl font-bold text-slate-900">How it works</h3>
-          <ol className="mt-3 space-y-2 text-sm text-slate-600 sm:text-base">
-            <li>1. Enter contact details and choose the checks you need.</li>
-            <li>2. Share the generated secure link with the seller.</li>
-            <li>3. Seller completes verification in around 45 seconds.</li>
-            <li>4. Open the same link to view results instantly.</li>
-          </ol>
+        <section className="mt-7 rounded-3xl border border-blue-100 bg-white/85 p-6 shadow-sm backdrop-blur-sm sm:p-7">
+          <h3 className="hero-title text-2xl font-bold text-slate-900">How Identity Banc Works</h3>
+          <div className="mt-4 grid gap-3">
+            {howItWorksSteps.map((step, index) => (
+              <article
+                key={step.title}
+                className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/60 p-4"
+              >
+                <div className="mb-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">
+                  Step {index + 1}
+                </div>
+                <h4 className="text-base font-semibold text-slate-900 sm:text-lg">{step.title}</h4>
+                <p className="mt-1 text-sm text-slate-600 sm:text-base">{step.description}</p>
+              </article>
+            ))}
+          </div>
         </section>
       </div>
     </div>
