@@ -119,7 +119,7 @@ export function VerificationResults() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+      <div className="app-bg min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading verification results...</p>
@@ -130,7 +130,7 @@ export function VerificationResults() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
+      <div className="app-bg min-h-screen py-12 px-4">
         <div className="max-w-md mx-auto">
           <Card className="text-center">
             <div className="p-6">
@@ -153,8 +153,8 @@ export function VerificationResults() {
 
   if (session.status !== 'completed') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="app-bg min-h-screen py-12 px-4">
+        <div className="page-shell max-w-2xl">
           <Card>
             <CardHeader
               title="Verification In Progress"
@@ -190,11 +190,11 @@ export function VerificationResults() {
       (result?.property_verification_status === 'verified' && result?.property_match === true));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
+    <div className="app-bg min-h-screen py-12 px-4">
+      <div className="page-shell max-w-3xl">
+        <div className="mb-8 text-center">
           <Shield className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="hero-title mb-2 text-4xl font-bold text-gray-900">
             {isBuyer ? 'Your Verification Results' : 'Verification Results'}
           </h1>
           <p className="text-xl text-gray-600">{getVerificationTypeLabel()}</p>
@@ -216,7 +216,6 @@ export function VerificationResults() {
             </p>
           </div>
 
-          {/* Next Steps for Buyer */}
           {isBuyer && (
             <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="font-semibold text-blue-900 mb-2">Next Steps</h4>
@@ -294,23 +293,20 @@ export function VerificationResults() {
           )}
         </Card>
 
-          <div className="flex flex-col sm:flex-row gap-3 mt-6" style={{ visibility: 'visible', display: 'flex' }}>                                         
-              <Button
-                variant="outline"
-                onClick={handleRefresh}
-                className="flex-1"
-                disabled={loading}
-                >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-                </Button>
-                <Button
-                onClick={handleShare}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share Results
-                </Button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              className="flex-1"
+              disabled={loading}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button onClick={handleShare} className="flex-1">
+              <Share2 className="w-4 h-4 mr-2" />
+              Share Results
+            </Button>
           </div>
       </div>
     </div>

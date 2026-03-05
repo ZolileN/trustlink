@@ -15,6 +15,7 @@ import {
 } from '../lib/api';
 import { VerificationSession } from '../lib/supabase';
 import { isSessionExpired, hashValue } from '../lib/utils';
+import brandLogo from '../../Logo.png';
 
 type VerificationStep = 'loading' | 'expired' | 'invalid' | 'intro' | 'id' | 'property' | 'vehicle' | 'complete';
 
@@ -30,14 +31,6 @@ export function SellerVerification() {
   const [vehicleReference, setVehicleReference] = useState('');
 
   const [verifying, setVerifying] = useState(false);
-  const [verificationResults, setVerificationResults] = useState({
-    idVerified: false,
-    nameMatch: false,
-    propertyVerified: false,
-    propertyMatch: false,
-    vehicleVerified: false,
-    vehicleMatch: false
-  });
 
   useEffect(() => {
     loadSession();
@@ -96,12 +89,6 @@ export function SellerVerification() {
       name_match: result.nameMatch
     });
 
-    setVerificationResults(prev => ({
-      ...prev,
-      idVerified: result.verified,
-      nameMatch: result.nameMatch
-    }));
-
     setVerifying(false);
 
     if (session!.verification_type === 'property' || session!.verification_type === 'both') {
@@ -131,12 +118,6 @@ export function SellerVerification() {
       property_match: result.ownershipMatch
     });
 
-    setVerificationResults(prev => ({
-      ...prev,
-      propertyVerified: result.verified,
-      propertyMatch: result.ownershipMatch
-    }));
-
     setVerifying(false);
 
     if (session!.verification_type === 'both') {
@@ -164,12 +145,6 @@ export function SellerVerification() {
       vehicle_match: result.ownershipMatch
     });
 
-    setVerificationResults(prev => ({
-      ...prev,
-      vehicleVerified: result.verified,
-      vehicleMatch: result.ownershipMatch
-    }));
-
     setVerifying(false);
     await finalizeVerification();
   };
@@ -184,7 +159,7 @@ export function SellerVerification() {
 
   if (step === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
+      <div className="app-bg min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Shield className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-pulse" />
           <p className="text-gray-600">Loading verification...</p>
@@ -195,7 +170,7 @@ export function SellerVerification() {
 
   if (step === 'invalid') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="app-bg min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
@@ -209,7 +184,7 @@ export function SellerVerification() {
 
   if (step === 'expired') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="app-bg min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
@@ -223,12 +198,13 @@ export function SellerVerification() {
 
   if (step === 'intro') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <Shield className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">TrustLink Verification</h1>
-            <p className="text-xl text-gray-600">Quick & Secure Identity Verification</p>
+      <div className="app-bg min-h-screen py-12 px-4">
+        <div className="page-shell max-w-2xl">
+          <div className="mb-8 text-center">
+            <div className="logo-frame mb-2">
+              <img src={brandLogo} alt="Identity Banc logo" className="logo-image" />
+            </div>
+            <p className="text-xl text-gray-600">Quick and secure identity checks</p>
           </div>
 
           <Card>
@@ -238,30 +214,36 @@ export function SellerVerification() {
             />
 
             <div className="space-y-4 mb-6">
-              <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
+              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <div className="flex items-start gap-3">
                 <User className="w-6 h-6 text-blue-600 mt-1" />
                 <div>
                   <h3 className="font-semibold text-gray-900">Identity Verification</h3>
                   <p className="text-sm text-gray-600">Verify your SA ID number</p>
                 </div>
+                </div>
               </div>
 
               {(session?.verification_type === 'property' || session?.verification_type === 'both') && (
-                <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg">
-                  <Home className="w-6 h-6 text-green-600 mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Property Ownership</h3>
-                    <p className="text-sm text-gray-600">Verify property ownership via Deeds Office</p>
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <Home className="w-6 h-6 text-emerald-600 mt-1" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Property Ownership</h3>
+                      <p className="text-sm text-gray-600">Verify property ownership via Deeds Office</p>
+                    </div>
                   </div>
                 </div>
               )}
 
               {(session?.verification_type === 'vehicle' || session?.verification_type === 'both') && (
-                <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg">
-                  <Car className="w-6 h-6 text-purple-600 mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Vehicle Ownership</h3>
-                    <p className="text-sm text-gray-600">Verify vehicle ownership via NaTIS</p>
+                <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <Car className="w-6 h-6 text-cyan-700 mt-1" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Vehicle Ownership</h3>
+                      <p className="text-sm text-gray-600">Verify vehicle ownership via NaTIS</p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -293,8 +275,8 @@ export function SellerVerification() {
 
   if (step === 'id') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="app-bg min-h-screen py-12 px-4">
+        <div className="page-shell max-w-2xl">
           <Card>
             <CardHeader
               title="Step 1: Identity Verification"
@@ -345,8 +327,8 @@ export function SellerVerification() {
 
   if (step === 'property') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="app-bg min-h-screen py-12 px-4">
+        <div className="page-shell max-w-2xl">
           <Card>
             <CardHeader
               title="Step 2: Property Verification"
@@ -387,8 +369,8 @@ export function SellerVerification() {
 
   if (step === 'vehicle') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="app-bg min-h-screen py-12 px-4">
+        <div className="page-shell max-w-2xl">
           <Card>
             <CardHeader
               title={`Step ${session?.verification_type === 'both' ? '3' : '2'}: Vehicle Verification`}
@@ -429,8 +411,8 @@ export function SellerVerification() {
 
   if (step === 'complete') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="app-bg min-h-screen py-12 px-4">
+        <div className="page-shell max-w-2xl">
           <Card>
             <div className="text-center mb-6">
               <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
